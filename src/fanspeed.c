@@ -23,7 +23,7 @@ kern_return_t SMCOpen()
     io_iterator_t iterator;
     io_object_t   device;
 
-	IOMasterPort(MACH_PORT_NULL, &masterPort);
+    IOMasterPort(MACH_PORT_NULL, &masterPort);
 
     CFMutableDictionaryRef matchingDictionary = IOServiceMatching("AppleSMC");
     result = IOServiceGetMatchingServices(masterPort, matchingDictionary, &iterator);
@@ -63,11 +63,13 @@ kern_return_t SMCReadFans()
     int totalFans = strtouint32((char *)smcValue.bytes, smcValue.dataSize, 10);
     printf("# Fans: %d\n", totalFans);
 
+    kern_return_t result; 
     for (int i = 0; i < totalFans; i++) {
         sprintf(key, "F%dAc", i);
-        SMCReadKey(key, &smcValue);
+        result = SMCReadKey(key, &smcValue);
         // Debug
         //printf("Datatype: %s\n", smcValue.dataType);
+
         printf("Fan %i Current Speed: %f\n", i, GetFloatFromBytes(smcValue));
 
         sprintf(key, "F%dMn", i);
@@ -129,6 +131,8 @@ kern_return_t SMCReadKey(char* key, SMCValue_t *smcValue)
     result = IOConnectCallStructMethod(gConn, KERNEL_INDEX_SMC, &inputKeyData, sizeof(SMCKeyData_t), &outputKeydata, &structureOutputSize );
 
     if (result != kIOReturnSuccess) {
+        //Debug
+        printf("Error: IOConnectCallStructMethod()");
         return result;
     }
 
@@ -142,6 +146,8 @@ kern_return_t SMCReadKey(char* key, SMCValue_t *smcValue)
     result = IOConnectCallStructMethod(gConn, KERNEL_INDEX_SMC, &inputKeyData, sizeof(SMCKeyData_t), &outputKeydata, &structureOutputSize);
 
     if (result != kIOReturnSuccess) {
+        //Debug
+        printf("Error: IOConnectCallStructMethod()");
         return result;
     }
 
